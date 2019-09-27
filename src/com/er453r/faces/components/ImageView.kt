@@ -63,7 +63,7 @@ class ImageView(file: File? = null) : Region() {
             job = executor.submit {
                 val path = it.absolutePath
                 val image = it.image(256)
-                
+
                 runLater {
                     if(this.file?.absolutePath == path){ // maybe file changed
                         imageProperty.value = image

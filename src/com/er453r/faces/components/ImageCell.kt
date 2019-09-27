@@ -4,11 +4,13 @@ import org.controlsfx.control.GridCell
 import java.io.File
 
 class ImageCell : GridCell<File>() {
+    private val imageView = ImageView()
+
+    init {
+        graphic = imageView
+    }
+
     override fun updateItem(item: File?, empty: Boolean) {
-        graphic = if (empty) {
-            null
-        } else {
-            ImageView(item)
-        }
+        imageView.update(item)
     }
 }

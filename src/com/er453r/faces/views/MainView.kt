@@ -22,7 +22,7 @@ import java.io.File
 class MainView : View() {
     private val logger = KotlinLogging.logger {}
 
-    private val directoryProperty = SimpleStringProperty("/home/mkotz/Downloads/test")
+    private val directoryProperty = SimpleStringProperty("/home/mkotz/Downloads/debki")
     private val filesProperty = mutableListOf<File>().asObservable()
 
     override val root = borderpane {
@@ -93,29 +93,29 @@ class MainView : View() {
                     }
                 }
 
-//                add(GridView(filesProperty).apply {
-//                    setCellFactory {
-//                        ImageCell()
+                add(GridView(filesProperty).apply {
+                    setCellFactory {
+                        ImageCell()
+                    }
+
+                    cellHeight = 256.0
+                    cellWidth = 256.0
+                    prefHeight = 400.0
+                })
+
+//                listview(filesProperty) {
+//                    cellFragment(ImageFragment::class)
+//
+//                    placeholder = label("Select directory") {
+//                        opacity = 0.6
 //                    }
 //
-//                    cellHeight = 256.0
-//                    cellWidth = 256.0
-//                    prefHeight = 400.0
-//                })
-
-                listview(filesProperty) {
-                    cellFragment(ImageFragment::class)
-
-                    placeholder = label("Select directory") {
-                        opacity = 0.6
-                    }
-
-                    selectionModel.selectionMode = SelectionMode.SINGLE
-
-                    onUserSelect {
-                        logger.info { "Selected!" }
-                    }
-                }
+//                    selectionModel.selectionMode = SelectionMode.SINGLE
+//
+//                    onUserSelect {
+//                        logger.info { "Selected!" }
+//                    }
+//                }
             }
         }
 
