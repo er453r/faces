@@ -1,6 +1,8 @@
 package com.er453r.faces.utils
 
+import javafx.embed.swing.SwingFXUtils
 import javafx.scene.image.Image
+import org.bytedeco.javacv.Java2DFrameUtils
 import org.bytedeco.javacv.JavaFXFrameConverter
 import org.bytedeco.javacv.OpenCVFrameConverter
 import org.bytedeco.opencv.global.opencv_imgcodecs
@@ -27,4 +29,12 @@ fun File.image(maxSize: Int = 128): Image {
     val frame = openCVFrameConverter.convert(resizedImage)
 
     return javaFXFrameConverter.convert(frame)
+}
+
+fun File.toMat() = opencv_imgcodecs.imread(absolutePath)
+
+fun Image.toMat():Mat {
+    val bufferedImage = SwingFXUtils.fromFXImage(this, null)
+
+    return Java2DFrameUtils.toMat(bufferedImage)
 }
