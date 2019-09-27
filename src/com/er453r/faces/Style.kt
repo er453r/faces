@@ -25,8 +25,7 @@ class Style : Stylesheet() {
             prefHeight = 800.px
             prefWidth = 1600.px
 
-            fontSize = 0.6.cm
-            fontFamily = "Ubuntu"
+            fontSize = 0.4.cm
         }
 
         label {
