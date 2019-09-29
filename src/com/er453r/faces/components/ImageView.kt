@@ -45,8 +45,8 @@ class ImageView(file: File? = null) : Region() {
 
                     isPreserveRatio = true
 
-                    fitHeightProperty().bind(region.heightProperty())
-                    fitWidthProperty().bind(region.widthProperty())
+                    //fitHeightProperty().bind(region.heightProperty())
+                    //fitWidthProperty().bind(region.widthProperty())
                 }
 
                 add(overlay)
@@ -76,7 +76,7 @@ class ImageView(file: File? = null) : Region() {
                 )
             }
 
-            val margin = image.width * 0.2
+            val margin = image.width * 0.1
 
             overlay.add(
                 rectangle(margin, margin, image.width -2*margin, image.height -2*margin) {
@@ -101,7 +101,7 @@ class ImageView(file: File? = null) : Region() {
 
                 job = executor.submit {
                     val path = file.absolutePath
-                    val image = file.image(512)
+                    val image = file.image(256)
 
                     runLater {
                         if (fileProperty.value.absolutePath == path) { // maybe file changed
