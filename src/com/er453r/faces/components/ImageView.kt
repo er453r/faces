@@ -1,6 +1,7 @@
 package com.er453r.faces.components
 
 import com.er453r.faces.utils.FaceDetector
+import com.er453r.faces.utils.debounce
 import com.er453r.faces.utils.image
 import com.er453r.faces.utils.toMat
 import javafx.beans.property.SimpleDoubleProperty
@@ -16,17 +17,18 @@ import java.util.concurrent.Future
 
 class ImageView(file: File? = null) : Region() {
     companion object {
-        private val executor = Executors.newFixedThreadPool(2)
+        private val executor = Executors.newFixedThreadPool(8)
     }
 
+    private val fileProperty = SimpleObjectProperty<File>()
     private val imageProperty = SimpleObjectProperty<Image>()
     private val loadingText = SimpleStringProperty()
     private val imageOpacity = SimpleDoubleProperty(0.0)
-    private var job:Future<*>? = null
-    private var file:File? = null
+
+    private var job: Future<*>? = null
 
     private val faceDetector = FaceDetector()
-    private val overlay = group {  }
+    private val overlay = group { }
 
     init {
         val region = this
@@ -51,56 +53,70 @@ class ImageView(file: File? = null) : Region() {
             }
         )
 
-        file?.let {
-            update(it)
-        }
-    }
+        imageProperty.debounce { image ->
+            val faces = faceDetector.findFaces(image.toMat(), true)
 
-    fun update(file: File?) {
-        this.file = file
+            overlay.children.clear()
 
-        loadingText.value = "Loading ${file?.absolutePath ?: "derp"}"
-        imageOpacity.value = 0.2
+            faces.forEach { rectangle ->
+                overlay.add(
+                    rectangle(rectangle.minX * image.width, rectangle.minY * image.height, rectangle.width * image.width, rectangle.height * image.height) {
+                        stroke = Color.RED
+                        strokeWidth = 4.0
+                        fill = null
 
-        file?.let {
-            job?.let {
-                if(!(it.isDone || it.isCancelled))
-                    it.cancel(true)
+                        setOnMouseEntered {
+                            this.fill = Color.RED
+                        }
+
+                        setOnMouseExited {
+                            this.fill = null
+                        }
+                    }
+                )
             }
 
-            job = executor.submit {
-                val path = it.absolutePath
-                val image = it.image(512)
+            val margin = image.width * 0.2
 
-                runLater {
-                    if(this.file?.absolutePath == path){ // maybe file changed
-                        imageProperty.value = image
-                        imageOpacity.value = 1.0
+            overlay.add(
+                rectangle(margin, margin, image.width -2*margin, image.height -2*margin) {
+                    stroke = Color.BLUE
+                    strokeWidth = 4.0
+                    fill = null
+                }
+            )
+        }
 
-                        val faces = faceDetector.findFaces(image.toMat(), true)
+        fileProperty.debounce {
+            overlay.children.clear()
 
-                        overlay.children.clear()
+            loadingText.value = "Loading ${it?.absolutePath ?: "empty"}"
+            imageOpacity.value = 0.2
 
-                        faces.forEach {
-                            overlay.add(
-                                rectangle(it.minX * image.width, it.minY * image.height, it.width * image.width, it.height * image.height) {
-                                    stroke = Color.RED
-                                    strokeWidth = 4.0
-                                    fill = null
+            it?.let { file ->
+                job?.let { job ->
+                    if (!(job.isDone || job.isCancelled))
+                        job.cancel(true)
+                }
 
-                                    setOnMouseEntered {
-                                        this.fill = Color.RED
-                                    }
+                job = executor.submit {
+                    val path = file.absolutePath
+                    val image = file.image(512)
 
-                                    setOnMouseExited {
-                                        this.fill = null
-                                    }
-                                }
-                            )
+                    runLater {
+                        if (fileProperty.value.absolutePath == path) { // maybe file changed
+                            imageProperty.value = image
+                            imageOpacity.value = 1.0
                         }
                     }
                 }
             }
         }
+
+        update(file)
+    }
+
+    fun update(file: File?) {
+        fileProperty.value = file
     }
 }
