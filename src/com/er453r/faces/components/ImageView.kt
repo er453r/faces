@@ -1,7 +1,9 @@
 package com.er453r.faces.components
 
-import com.er453r.faces.utils.FaceDetector
+import com.er453r.faces.utils.faces.detectors.CascadeFaceDetector
 import com.er453r.faces.utils.debounce
+import com.er453r.faces.utils.faces.FaceDetector
+import com.er453r.faces.utils.faces.detectors.DeepLearningFaceDetector
 import com.er453r.faces.utils.image
 import com.er453r.faces.utils.toMat
 import javafx.beans.property.SimpleDoubleProperty
@@ -10,12 +12,15 @@ import javafx.beans.property.SimpleStringProperty
 import javafx.scene.image.Image
 import javafx.scene.layout.Region
 import javafx.scene.paint.Color
+import mu.KotlinLogging
 import tornadofx.*
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
 class ImageView(file: File? = null) : Region() {
+    private val log = KotlinLogging.logger {}
+
     companion object {
         private val executor = Executors.newFixedThreadPool(8)
     }
@@ -27,12 +32,10 @@ class ImageView(file: File? = null) : Region() {
 
     private var job: Future<*>? = null
 
-    private val faceDetector = FaceDetector()
+    private val faceDetector:FaceDetector = DeepLearningFaceDetector()
     private val overlay = group { }
 
     init {
-        val region = this
-
         add(
             stackpane {
                 label(loadingText) {
@@ -44,9 +47,6 @@ class ImageView(file: File? = null) : Region() {
                     opacityProperty().bindBidirectional(imageOpacity)
 
                     isPreserveRatio = true
-
-                    //fitHeightProperty().bind(region.heightProperty())
-                    //fitWidthProperty().bind(region.widthProperty())
                 }
 
                 add(overlay)
@@ -54,7 +54,9 @@ class ImageView(file: File? = null) : Region() {
         )
 
         imageProperty.debounce { image ->
-            val faces = faceDetector.findFaces(image.toMat(), true)
+            val faces = faceDetector.findFaces(image.toMat())
+
+            log.info { "Found ${faces.size} faces" }
 
             overlay.children.clear()
 
